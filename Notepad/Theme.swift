@@ -53,16 +53,16 @@ public struct Theme {
         let path: String
         
         if let path1 = bundle.path(forResource: "Notepad.framework/themes/\(name)", ofType: "json") {
-            
             path = path1
         }
         else if let path2 = bundle.path(forResource: "Notepad.framework/\(name)", ofType: "json") {
-            
             path = path2
         }
         else if let path3 = bundle.path(forResource: "themes/\(name)", ofType: "json") {
-
             path = path3
+        }
+        else if let path4 = bundle.path(forResource: name, ofType: "json") {
+            path = path4
         }
         else {
             
@@ -93,19 +93,29 @@ public struct Theme {
         if var allStyles = data["styles"] as? [String: AnyObject] {
             if let bodyStyles = allStyles["body"] as? [String: AnyObject] {
                 if var parsedBodyStyles = parse(bodyStyles) {
-                    if #available(iOS 13.0, *) {
-                        if parsedBodyStyles[NSAttributedString.Key.foregroundColor] == nil {
-                            parsedBodyStyles[NSAttributedString.Key.foregroundColor] = UniversalColor.label
+                    #if os(iOS)
+                        if #available(iOS 13.0, *) {
+                            if parsedBodyStyles[NSAttributedString.Key.foregroundColor] == nil {
+                                parsedBodyStyles[NSAttributedString.Key.foregroundColor] = UniversalColor.label
+                            }
                         }
-                    }
+                    #elseif os(macOS)
+                        if parsedBodyStyles[NSAttributedString.Key.foregroundColor] == nil {
+                            parsedBodyStyles[NSAttributedString.Key.foregroundColor] = UniversalColor.labelColor
+                        }
+                    #endif
                     body = Style(element: .body, attributes: parsedBodyStyles)
                 }
             }
             else { // Create a default body font so other styles can inherit from it.
                 var textColor = UniversalColor.black
-                if #available(iOS 13.0, *) {
-                    textColor = UniversalColor.label
-                }
+                #if os(iOS)
+                    if #available(iOS 13.0, *) {
+                        textColor = UniversalColor.label
+                    }
+                #elseif os(macOS)
+                    textColor = UniversalColor.labelColor
+                #endif
                 let attributes = [NSAttributedString.Key.foregroundColor: textColor]
                 body = Style(element: .body, attributes: attributes)
             }
