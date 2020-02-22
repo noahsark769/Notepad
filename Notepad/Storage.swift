@@ -12,9 +12,9 @@
     import AppKit
 #endif
 
-public class Storage: NSTextStorage {
+open class Storage: NSTextStorage {
     /// The Theme for the Notepad.
-    public var theme: Theme? {
+    open var theme: Theme? {
         didSet {
             let wholeRange = NSRange(location: 0, length: (self.string as NSString).length)
 
@@ -28,7 +28,7 @@ public class Storage: NSTextStorage {
     /// The underlying text storage implementation.
     var backingStore = NSTextStorage()
 
-    override public var string: String {
+    override open var string: String {
         get {
             return backingStore.string
         }
@@ -37,7 +37,7 @@ public class Storage: NSTextStorage {
     override public init() {
         super.init()
     }
-    
+
     override public init(attributedString attrStr: NSAttributedString) {
         super.init(attributedString:attrStr)
         backingStore.setAttributedString(attrStr)
@@ -46,16 +46,16 @@ public class Storage: NSTextStorage {
     required public init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-    
+
     required public init(itemProviderData data: Data, typeIdentifier: String) throws {
         fatalError("init(itemProviderData:typeIdentifier:) has not been implemented")
     }
-    
+
     #if os(macOS)
     required public init?(pasteboardPropertyList propertyList: Any, ofType type: String) {
         fatalError("init(pasteboardPropertyList:ofType:) has not been implemented")
     }
-    
+
     required public init?(pasteboardPropertyList propertyList: Any, ofType type: NSPasteboard.PasteboardType) {
         fatalError("init(pasteboardPropertyList:ofType:) has not been implemented")
     }
@@ -67,7 +67,7 @@ public class Storage: NSTextStorage {
     /// - parameter range:    The range to find attributes for.
     ///
     /// - returns: The attributes on a String within a certain range.
-    override public func attributes(at location: Int, longestEffectiveRange range: NSRangePointer?, in rangeLimit: NSRange) -> [NSAttributedString.Key : Any] {
+    override open func attributes(at location: Int, longestEffectiveRange range: NSRangePointer?, in rangeLimit: NSRange) -> [NSAttributedString.Key : Any] {
         return backingStore.attributes(at: location, longestEffectiveRange: range, in: rangeLimit)
     }
 
@@ -75,7 +75,7 @@ public class Storage: NSTextStorage {
     ///
     /// - parameter range: The range to replace.
     /// - parameter str:   The new string to replace the range with.
-    override public func replaceCharacters(in range: NSRange, with str: String) {
+    override open func replaceCharacters(in range: NSRange, with str: String) {
         self.beginEditing()
         backingStore.replaceCharacters(in: range, with: str)
         let len = (str as NSString).length
@@ -88,36 +88,37 @@ public class Storage: NSTextStorage {
     ///
     /// - parameter attrs: The attributes to add to the string for the range.
     /// - parameter range: The range in which to add attributes.
-    public override func setAttributes(_ attrs: [NSAttributedString.Key : Any]?, range: NSRange) {
+    open override func setAttributes(_ attrs: [NSAttributedString.Key : Any]?, range: NSRange) {
         self.beginEditing()
         backingStore.setAttributes(attrs, range: range)
         self.edited(.editedAttributes, range: range, changeInLength: 0)
         self.endEditing()
     }
-    
+
     /// Retrieves the attributes of a string for a particular range.
     ///
     /// - parameter at: The location to begin with.
     /// - parameter range: The range in which to retrieve attributes.
-    public override func attributes(at location: Int, effectiveRange range: NSRangePointer?) -> [NSAttributedString.Key : Any] {
+    open override func attributes(at location: Int, effectiveRange range: NSRangePointer?) -> [NSAttributedString.Key : Any] {
         return backingStore.attributes(at: location, effectiveRange: range)
     }
-    
+
     /// Processes any edits made to the text in the editor.
-    override public func processEditing() {
+    override open func processEditing() {
+        super.processEditing()
         let backingString = backingStore.string
         let nsRange = backingString.range(from: NSMakeRange(NSMaxRange(editedRange), 0))!
         let indexRange = backingString.lineRange(for: nsRange)
         let extendedRange: NSRange = NSUnionRange(editedRange, backingString.nsRange(from: indexRange))
 
         applyStyles(extendedRange)
-        super.processEditing()
+        self.invalidateAttributes(in: extendedRange)
     }
 
     /// Applies styles to a range on the backingString.
     ///
     /// - parameter range: The range in which to apply styles.
-    func applyStyles(_ range: NSRange) {
+    public func applyStyles(_ range: NSRange) {
         guard let theme = self.theme else { return }
 
         let backingString = backingStore.string
