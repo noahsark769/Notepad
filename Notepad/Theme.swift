@@ -39,7 +39,7 @@ public struct Theme {
     public fileprivate(set) var tintColor: UniversalColor = UniversalColor.blue
 
     /// All of the other styles for the Notepad editor.
-    var styles: [Style] = []
+    public var styles: [Style] = []
     
 
     /// Build a theme from a JSON theme file.
