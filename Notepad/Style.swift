@@ -17,7 +17,7 @@ public struct Style {
         self.attributes = attributes
     }
 
-    init(regex: NSRegularExpression, attributes: [NSAttributedString.Key: Any]) {
+    public init(regex: NSRegularExpression, attributes: [NSAttributedString.Key: Any]) {
         self.regex = regex
         self.attributes = attributes
     }
